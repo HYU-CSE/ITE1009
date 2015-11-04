@@ -158,7 +158,10 @@
     <ResourceCompile Include="AdrBook.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="ico.ico" />
+    <Image Include="resource\genre_fix.png" />
+    <Image Include="resource\ico.ico" />
+    <Image Include="resource\music_fix.png" />
+    <Image Include="resource\PlayList_fix.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

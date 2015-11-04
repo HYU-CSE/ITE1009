@@ -13,8 +13,10 @@
 
 #include "resource.h"
 
-#define SIZEW 800 + 16
-#define SIZEH 800 + 39
+#define SIZEW 400
+#define SIZEH 600
+#define SIZEWW SIZEW + 16
+#define SIZEHH SIZEH + 39
 #define TITLE "AdrBook"
 
 POINT point;

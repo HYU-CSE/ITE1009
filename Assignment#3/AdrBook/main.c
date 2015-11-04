@@ -1,4 +1,11 @@
 #include "main.h"
+#include "object.h"
+
+object_node * topbar;
+
+HINSTANCE nInst;
+
+HBITMAP topIcons[3];
 
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -10,7 +17,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
 
 	HICON hICON = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
-	win_main.hInstance = hInstance;
+	win_main.hInstance = nInst = hInstance;
 	win_main.style = CS_HREDRAW | CS_VREDRAW;
 	win_main.cbSize = sizeof(WNDCLASSEX);
 	win_main.cbClsExtra = 0;
@@ -27,7 +34,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 
 	hwnd = CreateWindowEx(0, TITLE, TITLE, WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT,
-		CW_USEDEFAULT, SIZEW, SIZEH, HWND_DESKTOP, NULL, hInstance, NULL);
+		CW_USEDEFAULT, SIZEWW, SIZEHH, HWND_DESKTOP, NULL, hInstance, NULL);
 
 	ShowWindow(hwnd, nCmdShow);
 
@@ -37,80 +44,117 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (PeekMessage(&messages, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&messages);
-			DiobjatchMessage(&messages);
+			DispatchMessage(&messages);
 		}
 	}
 	return messages.wParam;
+}
+void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, int borderCol, int backCol)
+{
+	HPEN hPen, hOldPen;
+	HBRUSH hBrush, hOldBrush;
+	if (!border)
+		hPen = GetStockObject(NULL_PEN);
+	else
+		hPen = CreatePen(0, border, borderCol);
+	if (!back)
+		hBrush = GetStockObject(NULL_BRUSH);
+	else
+		hBrush = CreateSolidBrush(backCol);
+
+	hOldPen = (HPEN)SelectObject(*dc, hPen);
+	hOldBrush = (HBRUSH)SelectObject(*dc, hBrush);
+
+		Rectangle(*dc, x, y, x + w, y + h);
+
+	SelectObject(*dc, hOldPen);
+	DeleteObject(hPen);
+	SelectObject(*dc, hOldBrush);
+	DeleteObject(hBrush);
+}
+void draw_list(HDC * dc, object_node * list)
+{
+	object frame = list->obj;
+	OBJECT_FOREACH(idx, list)
+		draw_rectangle(dc, frame.x + idx->obj.x, frame.y + idx->obj.y, idx->obj.w, idx->obj.h,
+						idx->obj.border,idx->obj.back, idx->obj.cBorder, idx->obj.cBack);
 }
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
-	case WM_CREATE:
-	{
-		break;
-	}
-	case WM_SIZE:
-	{
-		break;
-	}
-	case WM_MOUSEWHEEL:
-	{
-		break;
-	}
-	case WM_KEYDOWN:
-	{
-		break;
-	}
-	case WM_LBUTTONDOWN:
-	{
+		case WM_CREATE:
+		{
+			topbar = create_objectNodeRAW();
+			add_to_end_of_list(topbar, create_object(1, 1, SIZEW-1, 50, 0, 1, RGB(0, 0, 0), RGB(255, 255, 255), "name", "value"));
+			
+			for (int i = 0; i < 3; i++)
+				topIcons[i] = LoadBitmap(nInst, MAKEINTRESOURCE(1001 + i));
 
-		break;
-	}
-	case WM_COMMAND:
-	{
-		break;
-	}
-	case WM_MOUSEMOVE:
-	{
-		point.x = lParam & 0xffff;
-		if (point.x > 60000) point.x = 0;
-		point.y = lParam >> 16;
-		//if (!mainPage)
-			//InvalidateRect(hwnd, NULL, FALSE);
-		break;
-	}
-	case WM_PAINT:
-	{
-		PAINTSTRUCT ps;
-		RECT				mRC;
-		HDC				hdc, mDC;
-		HBITMAP		mBitmap, mOldBitmap;
+			break;
+		}
+		case WM_SIZE:
+		{
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			break;
+		}
+		case WM_KEYDOWN:
+		{
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		{
 
-		hdc = BeginPaint(hwnd, &ps);
+			break;
+		}
+		case WM_COMMAND:
+		{
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{
+			point.x = lParam & 0xffff;
+			if (point.x > 60000) point.x = 0;
+			point.y = lParam >> 16;
+			//if (!mainPage)
+				//InvalidateRect(hwnd, NULL, FALSE);
+			break;
+		}
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			RECT		mRC;
+			HDC			hdc, mDC;
+			HBITMAP		mBitmap, mOldBitmap;
 
-		GetClientRect(hwnd, &mRC);
-		mDC = CreateCompatibleDC(hdc);
-		mBitmap = CreateCompatibleBitmap(hdc, mRC.right, mRC.bottom);
-		mOldBitmap = (HBITMAP)SelectObject(mDC, mBitmap);
-		PatBlt(mDC, 0, 0, mRC.right, mRC.bottom, WHITENESS);
-		SetBkMode(mDC, TRANSPARENT);
-		SetStretchBltMode(mDC, COLORONCOLOR);
+			hdc = BeginPaint(hwnd, &ps);
 
+			GetClientRect(hwnd, &mRC);
+			mDC = CreateCompatibleDC(hdc);
+			mBitmap = CreateCompatibleBitmap(hdc, mRC.right, mRC.bottom);
+			mOldBitmap = (HBITMAP)SelectObject(mDC, mBitmap);
+			PatBlt(mDC, 0, 0, mRC.right, mRC.bottom, WHITENESS);
+			SetBkMode(mDC, TRANSPARENT);
+			SetStretchBltMode(mDC, COLORONCOLOR);
+			{
+				draw_list(&mDC, topbar);
+			}
+			BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
+			SelectObject(mDC, mOldBitmap);
+			DeleteObject(mBitmap);
+			DeleteDC(mDC);
 
-		BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
-		SelectObject(mDC, mOldBitmap);
-		DeleteObject(mBitmap);
-		DeleteDC(mDC);
-
-		EndPaint(hwnd, &ps);
-		break;
-	}
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hwnd, message, wParam, lParam);
+			EndPaint(hwnd, &ps);
+			break;
+		}
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hwnd, message, wParam, lParam);
 	}
 	return 0;
 }
