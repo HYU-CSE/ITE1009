@@ -1,30 +1,85 @@
 #pragma once
-#include <stdlib.h>
-#include <string.h>
 
+#ifdef WIN32
 #pragma warning ( disable : 4996) 
-typedef struct  object_ {
-	int x, y, w, h;
-	int border, back;
-	size_t index;
-	char * name;
-	char * tag;
-	long cBorder, cBack;
-}object;
-typedef struct object_node_ {
-	struct object_ obj;
-	struct object_node_ * next;
-}object_node;
+#endif
 
-#define OBJECT_FOREACH(idx, list) for(object_node * idx = list->next; idx != NULL; idx = idx->next)
+#include <stdlib.h>
+#include <string>
+#include <utility>
+#include <functional>
 
-object create_object(int, int, int, int, int,int, long, long, char *, char *);
-object_node * create_objectNodeRAW();
-object_node * create_objectNode(object);
-object_node * pre_of_node(object_node * head, object_node *);
-object_node * find_at_list_name(object_node *, char *);
-object_node * find_at_list_index(object_node *, size_t);
-void change_list(object_node *, object);
-void delete_at_list(object_node *, object_node *);
-void add_to_list(object_node *, object_node *, object);
-void add_to_end_of_list(object_node *, object);
+using namespace std;
+template <typename T>
+class box {
+private:
+	T x, y, w, h;
+	function<T(T&, T&)> swap = [](T& object, T& dest)->T { 
+		object ^= dest ^= object ^= dest; 
+		return dest; };
+public:
+	box() {}
+	box(T x, T y, T w, T h) : this->x(x), this->y(y), this->w(w), this->h(h) {}
+	~box() {}
+
+	T movex(T dest)
+	{ return this->swap(this->x, dest); }
+	T movey(T dest)
+	{ return this->swap(this->y, dest); }
+	pair<T, T> move(pair<T, T> dest)
+	{ return{ this->expandx(dest.first), this->expandy(dest.second) }; }
+
+	T expandw(T dest)
+	{ return this->swap(this->w, dest); }
+	T expandh(T dest)
+	{ return this->swap(this->h, dest); }
+	pair<T, T> expand(pair<T, T> dest)
+	{ return{ this->expandw(dest.first), this->expandh(dest.second) }; }
+};
+
+class BMP {
+private:
+public:
+	BMP() {}
+	~BMP() {}
+};
+
+class callback {
+
+};
+
+class object_raw : public box<int>{
+private:
+
+public:
+	size_t idx;
+
+};
+
+class object_polygon : public object_raw
+{
+private:
+public:
+	object_polygon() {}
+	~object_polygon() {}
+
+};
+
+class object_text : public object_raw {
+private:
+public:
+	object_text() {}
+	~object_text() {}
+};
+class object_image : public object_raw, public BMP {
+private:
+public:
+	object_image() {}
+	~object_image() {}
+};
+class object_button : public object_raw, public callback {
+private:
+public:
+	object_button() {}
+	~object_button() {}
+};

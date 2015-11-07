@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef WIN32
 	#include <Windows.h>
 	#pragma warning (disable : 4996)
@@ -5,9 +7,6 @@
 	
 #endif
 
-#pragma once
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <process.h>
 

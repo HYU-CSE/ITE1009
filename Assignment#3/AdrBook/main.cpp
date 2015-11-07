@@ -1,8 +1,6 @@
 #include "main.h"
 #include "object.h"
 
-object_node * topbar;
-
 HINSTANCE nInst;
 
 HBITMAP topIcons[3];
@@ -53,12 +51,14 @@ void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, i
 {
 	HPEN hPen, hOldPen;
 	HBRUSH hBrush, hOldBrush;
+
 	if (!border)
-		hPen = GetStockObject(NULL_PEN);
+		hPen = (HPEN)GetStockObject(NULL_PEN);
 	else
 		hPen = CreatePen(0, border, borderCol);
+
 	if (!back)
-		hBrush = GetStockObject(NULL_BRUSH);
+		hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
 	else
 		hBrush = CreateSolidBrush(backCol);
 
@@ -72,25 +72,15 @@ void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, i
 	SelectObject(*dc, hOldBrush);
 	DeleteObject(hBrush);
 }
-void draw_list(HDC * dc, object_node * list)
-{
-	object frame = list->obj;
-	OBJECT_FOREACH(idx, list)
-		draw_rectangle(dc, frame.x + idx->obj.x, frame.y + idx->obj.y, idx->obj.w, idx->obj.h,
-						idx->obj.border,idx->obj.back, idx->obj.cBorder, idx->obj.cBack);
-}
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 		case WM_CREATE:
 		{
-			topbar = create_objectNodeRAW();
-			add_to_end_of_list(topbar, create_object(1, 1, SIZEW-1, 50, 0, 1, RGB(0, 0, 0), RGB(255, 255, 255), "name", "value"));
 			
 			for (int i = 0; i < 3; i++)
 				topIcons[i] = LoadBitmap(nInst, MAKEINTRESOURCE(1001 + i));
-
 			break;
 		}
 		case WM_SIZE:
@@ -139,8 +129,8 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			PatBlt(mDC, 0, 0, mRC.right, mRC.bottom, WHITENESS);
 			SetBkMode(mDC, TRANSPARENT);
 			SetStretchBltMode(mDC, COLORONCOLOR);
-			{
-				draw_list(&mDC, topbar);
+			{//draw
+
 			}
 			BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
 			SelectObject(mDC, mOldBitmap);
