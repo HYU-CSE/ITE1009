@@ -1,9 +1,12 @@
 #include "main.h"
 #include "object.h"
+#include "table.h"
 
 HINSTANCE nInst;
 
 HBITMAP topIcons[3];
+
+table<object_rectangle<int>> topbar;
 
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -47,7 +50,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	return messages.wParam;
 }
-void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, int borderCol, int backCol)
+
+void draw_rectangle(HDC * dc, int x, int y, int w, int h, int back, int border, int back_color, int border_color)
 {
 	HPEN hPen, hOldPen;
 	HBRUSH hBrush, hOldBrush;
@@ -55,12 +59,12 @@ void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, i
 	if (!border)
 		hPen = (HPEN)GetStockObject(NULL_PEN);
 	else
-		hPen = CreatePen(0, border, borderCol);
+		hPen = CreatePen(0, border, border_color);
 
 	if (!back)
 		hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
 	else
-		hBrush = CreateSolidBrush(backCol);
+		hBrush = CreateSolidBrush(back_color);
 
 	hOldPen = (HPEN)SelectObject(*dc, hPen);
 	hOldBrush = (HBRUSH)SelectObject(*dc, hBrush);
@@ -72,13 +76,26 @@ void draw_rectangle(HDC * dc, int x, int y, int w, int h, int border,int back, i
 	SelectObject(*dc, hOldBrush);
 	DeleteObject(hBrush);
 }
+template <typename T>
+void draw_table(HDC * dc, table<T> table)
+{
+	FOREACH_TABLE(table, it, T)
+	{
+		draw_rectangle(dc, it->x, it->y, it->w, it->h, it->back, it->border, it->back_color, it->border_color);
+	}
+}
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 		case WM_CREATE:
 		{
-			
+			topbar.setxy(0, 0);
+			object_rectangle<int> box(0, 0, SIZEW, 50, 1, 3, 0xffaa00, 0x00000);
+
+			topbar.insert(box);
+
+
 			for (int i = 0; i < 3; i++)
 				topIcons[i] = LoadBitmap(nInst, MAKEINTRESOURCE(1001 + i));
 			break;
@@ -130,7 +147,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			SetBkMode(mDC, TRANSPARENT);
 			SetStretchBltMode(mDC, COLORONCOLOR);
 			{//draw
-
+				draw_table(&mDC, topbar);
 			}
 			BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
 			SelectObject(mDC, mOldBitmap);

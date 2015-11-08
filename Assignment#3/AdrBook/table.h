@@ -3,30 +3,49 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 using namespace std;
+
+#define FOREACH_TABLE(table, iter, type)  for(vector<type>::iterator (iter) = (table).raw.begin(); (iter) != (table).raw.end(); (iter)++)
+
+
 
 template<typename T>
 class table {
 private:
-	unordered_map <string, T*> nameTable;
+	int x, y;
+	
 	unordered_map <size_t, T*> indexTable;
-	vector<T> raw;
-	vector<T>::iterator iter;
+	typename vector<T>::iterator iter;
 
 	template <typename type>
-	bool tableInsert(unordered_map<type, T*>& objTable, const pair<type, T*>& object)
+	void tableInsert(unordered_map<type, T*>& objTable, const pair<type, T*>& object)
 	{
-		return objTable->insert(object);
+		objTable.insert(object);
 	}
 public:
+	vector<T> raw;
 	table() {}
+	table(int x, int y) : this->x(x), this->y(y) {}
+	int setx(int x)
+	{
+		return swap_ref(this->x, x);
+	}
+	int sety(int y)
+	{
+		return swap_ref(this->y, y);
+	}
+	pair<int, int> setxy(int x, int y)
+	{
+		return{ this->setx(x), this->sety(y) };
+	}
 	bool insert(T object)
 	{
+		T temp = object;
 		bool err = true;
-		this->raw.push_back(object);
-		err |= !(this->tableInsert(this->nameTable, { this->raw.back().name, &(this->raw.back()) }));
-		err |= !(this->tableInsert(this->indexTable, { raw.size() - 1, &(this->raw.back()) }));
+		this->raw.push_back(temp);
+		this->tableInsert(this->indexTable, { raw.size() - 1, &(this->raw.back()) });
 		return err;
 	}
 
@@ -34,35 +53,13 @@ public:
 	{
 		return (*(this->indexTable.find(index)));
 	}
-	T find(string name)
-	{
-		return (*(this->nameTable.find(name)));
-	}
-
-	void initLoop()
-	{
-		iter = this->raw.begin();
-	}
-	T elementLoop()
-	{
-		if (iter == this->raw.end())
-			return nullptr;
-		T result = (*iter);
-		iter++;
-		return result;
-	}
 
 	bool remove(size_t index)
 	{
 		return this->remove(this->find(index));
 	}
-	bool remove(string name)
-	{
-		return this->remove(this->find(name));
-	}
 	bool remove(T object)
 	{
-		this->nameTable.erase(object.name);
 		this->indexTable.erase(this->find)
 	}
 	
