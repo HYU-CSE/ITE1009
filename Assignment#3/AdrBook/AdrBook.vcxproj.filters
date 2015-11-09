@@ -45,16 +45,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resource\ico.ico">
+    <Image Include="resource\topbarIcons.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="resource\genre_fix.png">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="resource\music_fix.png">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="resource\PlayList_fix.png">
+    <Image Include="resource\menuIcons.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

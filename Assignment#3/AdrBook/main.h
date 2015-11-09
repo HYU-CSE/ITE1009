@@ -16,6 +16,6 @@
 #define SIZEH 600
 #define SIZEWW SIZEW + 16
 #define SIZEHH SIZEH + 39
-#define TITLE "AdrBook"
+#define TITLE "cPlayer"
 
 POINT point;

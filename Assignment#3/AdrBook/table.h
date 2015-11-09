@@ -7,51 +7,59 @@
 
 using namespace std;
 
-#define FOREACH_TABLE(table, iter, type)  for(vector<type>::iterator (iter) = (table).raw.begin(); (iter) != (table).raw.end(); (iter)++)
-
-
+#define FOREACH_TABLE(table, iter, type)  for(vector<type>::iterator (iter) = (table).raw.begin() + ((table).getVisible() ? 0 : 1); (iter) != (table).raw.end(); (iter)++)
 
 template<typename T>
 class table {
 private:
-	int x, y;
-	
 	unordered_map <size_t, T*> indexTable;
 	typename vector<T>::iterator iter;
+	bool visible;
 
-	template <typename type>
-	void tableInsert(unordered_map<type, T*>& objTable, const pair<type, T*>& object)
-	{
-		objTable.insert(object);
-	}
 public:
 	vector<T> raw;
-	table() {}
-	table(int x, int y) : this->x(x), this->y(y) {}
-	int setx(int x)
+	int type;
+	table() 
 	{
-		return swap_ref(this->x, x);
-	}
-	int sety(int y)
-	{
-		return swap_ref(this->y, y);
-	}
-	pair<int, int> setxy(int x, int y)
-	{
-		return{ this->setx(x), this->sety(y) };
-	}
-	bool insert(T object)
-	{
-		T temp = object;
-		bool err = true;
+		T temp;
 		this->raw.push_back(temp);
-		this->tableInsert(this->indexTable, { raw.size() - 1, &(this->raw.back()) });
-		return err;
+		this->indexTable.insert({ raw.size() - 1, &(this->raw.back()) });
+		this->type = temp.type;
+	}
+	void setPivot(T object)
+	{
+		this->change(object, 0);
+	}
+	T getPivot()
+	{
+		return this->raw.at(0);
 	}
 
+	void setVisible(bool visible)
+	{
+		this->visible = visible;
+	}
+	bool getVisible()
+	{
+		return this->visible;
+	}
+
+	int insert(T object)
+	{
+		T temp = object;
+		this->raw.push_back(temp);
+		this->indexTable.insert({ this->raw.size() - 1, &(this->raw.back()) });
+		return raw.size()-1;
+	}
 	T find(size_t index)
 	{
 		return (*(this->indexTable.find(index)));
+	}
+	void change(T object, size_t index)
+	{
+		this->raw.at(index) = object;
+		typename unordered_map<size_t, T*>::iterator iter = this->indexTable.find(index);
+		iter->second = &(this->raw.at(index));
 	}
 
 	bool remove(size_t index)

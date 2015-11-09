@@ -4,9 +4,12 @@
 
 HINSTANCE nInst;
 
-HBITMAP topIcons[3];
 
-table<object_rectangle<int>> topbar;
+int frame = 0;
+
+table<object_rectangle<int>> topBar, botBar;
+table<object_image> botIcon, topIcon;
+table<object_text> topBarText;
 
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -50,12 +53,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	return messages.wParam;
 }
-
-void draw_rectangle(HDC * dc, int x, int y, int w, int h, int back, int border, int back_color, int border_color)
+pair<HPEN, HBRUSH> draw_init(HDC& dc, HPEN& hPen, HBRUSH& hBrush, int back, int border, int back_color, int border_color)
 {
-	HPEN hPen, hOldPen;
-	HBRUSH hBrush, hOldBrush;
-
 	if (!border)
 		hPen = (HPEN)GetStockObject(NULL_PEN);
 	else
@@ -66,22 +65,88 @@ void draw_rectangle(HDC * dc, int x, int y, int w, int h, int back, int border, 
 	else
 		hBrush = CreateSolidBrush(back_color);
 
-	hOldPen = (HPEN)SelectObject(*dc, hPen);
-	hOldBrush = (HBRUSH)SelectObject(*dc, hBrush);
-
-		Rectangle(*dc, x, y, x + w, y + h);
-
-	SelectObject(*dc, hOldPen);
+	return {(HPEN)SelectObject(dc, hPen), (HBRUSH)SelectObject(dc, hBrush) };
+}
+void draw_delete(HDC& dc, HPEN& hPen, HBRUSH& hBrush, pair<HPEN, HBRUSH> old)
+{
+	SelectObject(dc, old.first);
 	DeleteObject(hPen);
-	SelectObject(*dc, hOldBrush);
+	SelectObject(dc, old.second);
 	DeleteObject(hBrush);
 }
-template <typename T>
-void draw_table(HDC * dc, table<T> table)
+
+void drawBlt(HDC * dc, int x, int y, int w, int h, int srcx, int srcy, HDC * bDC)
 {
+	BitBlt(*dc, x, y, w, h, *bDC, srcx , srcy, SRCCOPY);
+	BitBlt(*dc, x, y, w, h, *bDC, srcx + w , srcy, SRCPAINT);
+}
+void drawProc(HDC * dc, int x, int y, int w, int h, int back, int border, int back_color, int border_color,
+	function<bool(HDC, int, int, int, int)> draw)
+{
+	HPEN hPen;
+	HBRUSH hBrush;
+	pair<HPEN, HBRUSH> old = draw_init(*dc, hPen, hBrush, back, border, back_color, border_color);
+
+		draw(*dc, x, y, x + w, y + h);
+
+	draw_delete(*dc, hPen, hBrush, old);
+}
+void drawText(HDC * dc, int x, int y, int w, int h, int size, string text)
+{
+	RECT rcDraw;
+	HFONT	hFont = CreateFont(size, 0, 0, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET, 0, 0, 0, 0 | FF_SWISS, TEXT("¸¼Àº°íµñ")),
+			hOldFont = (HFONT)SelectObject(*dc, hFont);
+
+	SetRect(&rcDraw, x, y, x + w, y + h);
+	DrawText(*dc, text.c_str(), -1, &rcDraw, DT_HIDEPREFIX);
+
+	SelectObject(*dc, hOldFont);
+	DeleteObject(hFont);
+}
+
+
+void draw_loop_text(HDC * dc, table<object_text> table)
+{
+	object_text pivot = table.getPivot();
+	FOREACH_TABLE(table, it, object_text)
+		if(it->visible)
+			drawText(dc, pivot.x + it->x, pivot.y + it->y, it->w, it->h, it->size, it->text);
+}
+template <typename T>
+void draw_loop_blt(HDC * dc, table<T> table)
+{
+	T pivot = table.getPivot();
+	HDC bDC = CreateCompatibleDC(*dc);
+	SelectObject(bDC, pivot.bitmap);
+
+	FOREACH_TABLE(table, it, T)
+		if(it->visible)
+			drawBlt(dc, it->x + pivot.x, it->y + pivot.y, it->w, it->h, it->srcx, it->srcy, &bDC);
+
+	DeleteDC(bDC);
+}
+template <typename T>
+void draw_loop_proc(HDC * dc, table<T> table)
+{
+	function <bool(HDC, int, int, int, int)> proc;
+
 	FOREACH_TABLE(table, it, T)
 	{
-		draw_rectangle(dc, it->x, it->y, it->w, it->h, it->back, it->border, it->back_color, it->border_color);
+		if (it->visible)
+		{
+			switch (it->type)
+			{
+			case ELLIPSE:
+				proc = Ellipse;
+				break;
+			case RECTANGLE:
+				proc = Rectangle;
+				break;
+			default:
+				break;
+			}
+			drawProc(dc, it->x, it->y, it->w, it->h, it->back, it->border, it->back_color, it->border_color, proc);
+		}
 	}
 }
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -90,14 +155,40 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 	{
 		case WM_CREATE:
 		{
-			topbar.setxy(0, 0);
-			object_rectangle<int> box(0, 0, SIZEW, 50, 1, 3, 0xffaa00, 0x00000);
+			object_rectangle<int>	tbox(-2, 1, SIZEW + 4, 40, true, 0, 2, 0xffffff, 0x00000),
+									bbox(-2, SIZEH-60, SIZEW + 4, 60, true, 0, 2, 0xffffff, 0x00000);
 
-			topbar.insert(box);
+			topBar.setVisible(true);
+			botBar.setVisible(true);
+			topBar.setPivot(tbox);
+			botBar.setPivot(bbox);
 
+			object_text textbox(-2, 1, SIZEW + 4, 50, true, 0, ""),
+						nowPlay(95, 9, 150, 25, true, 22, "Áö±Ý Àç»ýÁßÀÎ À½¾Ç");
 
-			for (int i = 0; i < 3; i++)
-				topIcons[i] = LoadBitmap(nInst, MAKEINTRESOURCE(1001 + i));
+			topBarText.setPivot(textbox);
+			topBarText.insert(nowPlay);
+
+			object_image botIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(MENUICONS)), 0, SIZEH-60, 0, 0, false),
+				iMusic(NULL, 40, 5, 50, 50, true, 0, 0), iPlaylist(NULL, 130, 5, 50, 50, true, 100, 0),
+				iGenre(NULL, 220, 5, 50, 50, true, 0, 50), iAlbum(NULL, 310, 5, 50, 50, true, 100, 50);
+			botIcon.setVisible(false);
+			botIcon.setPivot(botIconMap);
+			botIcon.insert(iMusic);
+			botIcon.insert(iPlaylist);
+			botIcon.insert(iGenre);
+			botIcon.insert(iAlbum);
+
+			object_image topIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(TOPBARICONS)), 0, 5, 0, 0, false),
+				iPlay(NULL, 5, 0, 30, 30, false, 0, 0), iPause(NULL, 5, 0, 30, 30, true, 60, 0),
+				iNext(NULL, 45, 0, 30, 30, true, 0, 30), iSearch(NULL, SIZEW-35, 0, 30, 30, true, 60, 30);
+			topIcon.setVisible(false);
+			topIcon.setPivot(topIconMap);
+			topIcon.insert(iPlay);
+			topIcon.insert(iPause);
+			topIcon.insert(iNext);
+			topIcon.insert(iSearch);
+
 			break;
 		}
 		case WM_SIZE:
@@ -147,7 +238,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			SetBkMode(mDC, TRANSPARENT);
 			SetStretchBltMode(mDC, COLORONCOLOR);
 			{//draw
-				draw_table(&mDC, topbar);
+				draw_loop_text(&mDC, topBarText);
+				draw_loop_blt(&mDC, topIcon);
+				draw_loop_proc(&mDC, topBar);
+
+				draw_loop_blt(&mDC, botIcon);
+				draw_loop_proc(&mDC, botBar);
 			}
 			BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
 			SelectObject(mDC, mOldBitmap);
