@@ -38,6 +38,12 @@
     <ClInclude Include="table.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="drawing.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="listElements.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdrBook.rc">

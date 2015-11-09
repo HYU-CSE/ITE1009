@@ -1,15 +1,19 @@
 #include "main.h"
-#include "object.h"
-#include "table.h"
-
+#include "drawing.h"
+#include "listElements.h"
+#include <fstream>
+#include <iostream>
 HINSTANCE nInst;
 
+#define abs(x) (x) > 0 ? (x) : (-(x))
 
 int frame = 0;
 
 table<object_rectangle<int>> topBar, botBar;
 table<object_image> botIcon, topIcon;
 table<object_text> topBarText;
+
+listElements musicList;
 
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -53,100 +57,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 	return messages.wParam;
 }
-pair<HPEN, HBRUSH> draw_init(HDC& dc, HPEN& hPen, HBRUSH& hBrush, int back, int border, int back_color, int border_color)
+
+bool wheelTimer = false;
+void CALLBACK wheelTimerProc(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime)
 {
-	if (!border)
-		hPen = (HPEN)GetStockObject(NULL_PEN);
-	else
-		hPen = CreatePen(0, border, border_color);
-
-	if (!back)
-		hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
-	else
-		hBrush = CreateSolidBrush(back_color);
-
-	return {(HPEN)SelectObject(dc, hPen), (HBRUSH)SelectObject(dc, hBrush) };
-}
-void draw_delete(HDC& dc, HPEN& hPen, HBRUSH& hBrush, pair<HPEN, HBRUSH> old)
-{
-	SelectObject(dc, old.first);
-	DeleteObject(hPen);
-	SelectObject(dc, old.second);
-	DeleteObject(hBrush);
-}
-
-void drawBlt(HDC * dc, int x, int y, int w, int h, int srcx, int srcy, HDC * bDC)
-{
-	BitBlt(*dc, x, y, w, h, *bDC, srcx , srcy, SRCCOPY);
-	BitBlt(*dc, x, y, w, h, *bDC, srcx + w , srcy, SRCPAINT);
-}
-void drawProc(HDC * dc, int x, int y, int w, int h, int back, int border, int back_color, int border_color,
-	function<bool(HDC, int, int, int, int)> draw)
-{
-	HPEN hPen;
-	HBRUSH hBrush;
-	pair<HPEN, HBRUSH> old = draw_init(*dc, hPen, hBrush, back, border, back_color, border_color);
-
-		draw(*dc, x, y, x + w, y + h);
-
-	draw_delete(*dc, hPen, hBrush, old);
-}
-void drawText(HDC * dc, int x, int y, int w, int h, int size, string text)
-{
-	RECT rcDraw;
-	HFONT	hFont = CreateFont(size, 0, 0, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET, 0, 0, 0, 0 | FF_SWISS, TEXT("¸¼Àº°íµñ")),
-			hOldFont = (HFONT)SelectObject(*dc, hFont);
-
-	SetRect(&rcDraw, x, y, x + w, y + h);
-	DrawText(*dc, text.c_str(), -1, &rcDraw, DT_HIDEPREFIX);
-
-	SelectObject(*dc, hOldFont);
-	DeleteObject(hFont);
-}
-
-
-void draw_loop_text(HDC * dc, table<object_text> table)
-{
-	object_text pivot = table.getPivot();
-	FOREACH_TABLE(table, it, object_text)
-		if(it->visible)
-			drawText(dc, pivot.x + it->x, pivot.y + it->y, it->w, it->h, it->size, it->text);
-}
-template <typename T>
-void draw_loop_blt(HDC * dc, table<T> table)
-{
-	T pivot = table.getPivot();
-	HDC bDC = CreateCompatibleDC(*dc);
-	SelectObject(bDC, pivot.bitmap);
-
-	FOREACH_TABLE(table, it, T)
-		if(it->visible)
-			drawBlt(dc, it->x + pivot.x, it->y + pivot.y, it->w, it->h, it->srcx, it->srcy, &bDC);
-
-	DeleteDC(bDC);
-}
-template <typename T>
-void draw_loop_proc(HDC * dc, table<T> table)
-{
-	function <bool(HDC, int, int, int, int)> proc;
-
-	FOREACH_TABLE(table, it, T)
+	switch (id)
 	{
-		if (it->visible)
+		case 10:
 		{
-			switch (it->type)
-			{
-			case ELLIPSE:
-				proc = Ellipse;
-				break;
-			case RECTANGLE:
-				proc = Rectangle;
-				break;
-			default:
-				break;
-			}
-			drawProc(dc, it->x, it->y, it->w, it->h, it->back, it->border, it->back_color, it->border_color, proc);
+			musicList.y -= (abs(musicList.y - 40)) / 3;
+			InvalidateRect(hwnd, NULL, FALSE);
+			if (musicList.y < 41)
+				KillTimer(hwnd, 10);
+			break;
 		}
+		case 11:
+		{
+			musicList.y += (abs(musicList.y - 40)) / 3;
+			InvalidateRect(hwnd, NULL, FALSE);
+			if (musicList.y > 39)
+				KillTimer(hwnd, 11);
+			break;
+		}
+		default:
+			break;
 	}
 }
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -155,9 +89,8 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 	{
 		case WM_CREATE:
 		{
-			object_rectangle<int>	tbox(-2, 1, SIZEW + 4, 40, true, 0, 2, 0xffffff, 0x00000),
-									bbox(-2, SIZEH-60, SIZEW + 4, 60, true, 0, 2, 0xffffff, 0x00000);
-
+			object_rectangle<int>	tbox(-2, 1, SIZEW + 4, 40, true, 1, 2, 0xffffff, 0x00000),
+									bbox(-2, SIZEH-60, SIZEW + 4, 60, true, 1, 2, 0xffffff, 0x00000);
 			topBar.setVisible(true);
 			botBar.setVisible(true);
 			topBar.setPivot(tbox);
@@ -169,6 +102,16 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			topBarText.setPivot(textbox);
 			topBarText.insert(nowPlay);
 
+			object_image topIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(TOPBARICONS)), 0, 5, 0, 0, false),
+				iPlay(NULL, 5, 0, 30, 30, false, 0, 0), iPause(NULL, 5, 0, 30, 30, true, 60, 0),
+				iNext(NULL, 45, 0, 30, 30, true, 0, 30), iSearch(NULL, SIZEW - 35, 0, 30, 30, true, 60, 30);
+			topIcon.setVisible(false);
+			topIcon.setPivot(topIconMap);
+			topIcon.insert(iPlay);
+			topIcon.insert(iPause);
+			topIcon.insert(iNext);
+			topIcon.insert(iSearch);
+
 			object_image botIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(MENUICONS)), 0, SIZEH-60, 0, 0, false),
 				iMusic(NULL, 40, 5, 50, 50, true, 0, 0), iPlaylist(NULL, 130, 5, 50, 50, true, 100, 0),
 				iGenre(NULL, 220, 5, 50, 50, true, 0, 50), iAlbum(NULL, 310, 5, 50, 50, true, 100, 50);
@@ -179,16 +122,26 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			botIcon.insert(iGenre);
 			botIcon.insert(iAlbum);
 
-			object_image topIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(TOPBARICONS)), 0, 5, 0, 0, false),
-				iPlay(NULL, 5, 0, 30, 30, false, 0, 0), iPause(NULL, 5, 0, 30, 30, true, 60, 0),
-				iNext(NULL, 45, 0, 30, 30, true, 0, 30), iSearch(NULL, SIZEW-35, 0, 30, 30, true, 60, 30);
-			topIcon.setVisible(false);
-			topIcon.setPivot(topIconMap);
-			topIcon.insert(iPlay);
-			topIcon.insert(iPause);
-			topIcon.insert(iNext);
-			topIcon.insert(iSearch);
-
+			musicList.x = 5;
+			musicList.y = 40;
+			musicList.w = SIZEW - 10;
+			musicList.h = SIZEH - 40 - 60;
+			string temp;
+			ifstream in("musicList.ini");
+			int size; in >> size;
+			getline(in, temp);
+			while (size--)
+			{
+				string name, album, artist;
+				getline(in, name);
+				getline(in, album);
+				getline(in, artist);
+				musicList.insert(createInfo(name, album, artist));
+			}
+			break;
+		}
+		case WM_TIMER:
+		{
 			break;
 		}
 		case WM_SIZE:
@@ -197,6 +150,21 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		}
 		case WM_MOUSEWHEEL:
 		{
+			int e = ((SHORT)HIWORD(wParam) > 0) ? (-10) : (((SHORT)HIWORD(wParam) < 0) ? (10) : (0));
+			musicList.y += e;
+			InvalidateRect(hwnd, NULL, FALSE);
+			if (musicList.y < 39)
+			{
+				KillTimer(hwnd, 10);
+				KillTimer(hwnd, 11);
+				SetTimer(hwnd, 11, 25, wheelTimerProc);
+			}
+			else if (musicList.y > 41)
+			{
+				KillTimer(hwnd, 10);
+				KillTimer(hwnd, 11);
+				SetTimer(hwnd, 10, 25, wheelTimerProc);
+			}
 			break;
 		}
 		case WM_KEYDOWN:
@@ -238,12 +206,15 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			SetBkMode(mDC, TRANSPARENT);
 			SetStretchBltMode(mDC, COLORONCOLOR);
 			{//draw
+				draw_loop_list(&mDC, musicList, "");
+
+				draw_loop_proc(&mDC, botBar);
+				draw_loop_blt(&mDC, botIcon);
+
+				draw_loop_proc(&mDC, topBar);
 				draw_loop_text(&mDC, topBarText);
 				draw_loop_blt(&mDC, topIcon);
-				draw_loop_proc(&mDC, topBar);
 
-				draw_loop_blt(&mDC, botIcon);
-				draw_loop_proc(&mDC, botBar);
 			}
 			BitBlt(hdc, 0, 0, mRC.right, mRC.bottom, mDC, 0, 0, SRCCOPY);
 			SelectObject(mDC, mOldBitmap);

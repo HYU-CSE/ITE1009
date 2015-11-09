@@ -70,8 +70,5 @@ public:
 	{
 		this->indexTable.erase(this->find)
 	}
-	
-
 	~table() {}
-
 };

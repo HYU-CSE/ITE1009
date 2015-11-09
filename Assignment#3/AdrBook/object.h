@@ -5,6 +5,8 @@
 #include <Windows.h>
 #endif
 
+#include <vector>
+#include <unordered_map>
 #include <stdlib.h>
 #include <string>
 #include <utility>
@@ -12,7 +14,7 @@
 
 using namespace std;
 
-enum TYPE { NONE = 0, ELLIPSE, RECTANGLE, POLYGON, SPRITE, TEXT };
+enum TYPE { NONE = 0, ELLIPSE, RECTANGLE, POLYGON, SPRITE, TEXT, ELEMENTS };
 
 //swap arg1, arg2 by ref, return arg2
 template <typename T>
