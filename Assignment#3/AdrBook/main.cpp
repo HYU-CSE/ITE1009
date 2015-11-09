@@ -8,10 +8,12 @@ HINSTANCE nInst;
 #define abs(x) (x) > 0 ? (x) : (-(x))
 
 int frame = 0;
+bool searchOn = false;
 
 table<object_rectangle<int>> topBar, botBar;
 table<object_image> botIcon, topIcon;
 table<object_text> topBarText;
+
 
 listElements musicList;
 
@@ -65,7 +67,7 @@ void CALLBACK wheelTimerProc(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime)
 	{
 		case 10:
 		{
-			musicList.y -= (abs(musicList.y - 40)) / 3;
+			musicList.y -= (abs(musicList.y - 40)) / 7;
 			InvalidateRect(hwnd, NULL, FALSE);
 			if (musicList.y < 41)
 				KillTimer(hwnd, 10);
@@ -73,9 +75,9 @@ void CALLBACK wheelTimerProc(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime)
 		}
 		case 11:
 		{
-			musicList.y += (abs(musicList.y - 40)) / 3;
+			musicList.y += (abs(musicList.y - SIZEW + musicList.maxY())/ 7);
 			InvalidateRect(hwnd, NULL, FALSE);
-			if (musicList.y > 39)
+			if (musicList.y > SIZEW - musicList.maxY())
 				KillTimer(hwnd, 11);
 			break;
 		}
@@ -97,10 +99,11 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			botBar.setPivot(bbox);
 
 			object_text textbox(-2, 1, SIZEW + 4, 50, true, 0, ""),
-						nowPlay(95, 9, 150, 25, true, 22, "지금 재생중인 음악");
-
+						nowPlay(95, 9, 275, 25, true, 22, "지금 재생중인 음악"),
+						searchText(95, 9, 275, 25, false, 22, "");
 			topBarText.setPivot(textbox);
 			topBarText.insert(nowPlay);
+			topBarText.insert(searchText);
 
 			object_image topIconMap(LoadBitmap(nInst, MAKEINTRESOURCE(TOPBARICONS)), 0, 5, 0, 0, false),
 				iPlay(NULL, 5, 0, 30, 30, false, 0, 0), iPause(NULL, 5, 0, 30, 30, true, 60, 0),
@@ -150,29 +153,67 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		}
 		case WM_MOUSEWHEEL:
 		{
-			int e = ((SHORT)HIWORD(wParam) > 0) ? (-10) : (((SHORT)HIWORD(wParam) < 0) ? (10) : (0));
+			int e = ((SHORT)HIWORD(wParam) > 0) ? (-15) : (((SHORT)HIWORD(wParam) < 0) ? (15) : (0));
 			musicList.y += e;
 			InvalidateRect(hwnd, NULL, FALSE);
-			if (musicList.y < 39)
+			if (musicList.y < SIZEW - musicList.maxY())
 			{
 				KillTimer(hwnd, 10);
 				KillTimer(hwnd, 11);
-				SetTimer(hwnd, 11, 25, wheelTimerProc);
+				SetTimer(hwnd, 11, 20, wheelTimerProc);
 			}
 			else if (musicList.y > 41)
 			{
 				KillTimer(hwnd, 10);
 				KillTimer(hwnd, 11);
-				SetTimer(hwnd, 10, 25, wheelTimerProc);
+				SetTimer(hwnd, 10, 20, wheelTimerProc);
 			}
 			break;
 		}
 		case WM_KEYDOWN:
 		{
+
+			if (searchOn)
+			{
+				if (topBarText.find(2).text == "검색어를 입력하세요.")
+					topBarText.find(2).text = "";
+				
+				switch (wParam)
+				{
+					case VK_BACK:
+						if (topBarText.find(2).text.size())
+							topBarText.find(2).text.pop_back();
+						break;
+					case VK_RETURN:
+						break;
+					default:
+						if ((wParam >= 'a' && wParam <= 'z') || (wParam >= 'A' && wParam <= 'Z'))
+							topBarText.find(2).text += (char)(wParam-'A'+'a');
+						break;
+				}
+				InvalidateRect(hwnd, NULL, FALSE);
+			}
 			break;
 		}
 		case WM_LBUTTONDOWN:
 		{
+			point.x = lParam & 0xffff;
+			point.y = lParam >> 16;
+
+			if (point.y < 40 && point.y > 5)
+				if (point.x > SIZEW - 35)
+				{
+					searchOn = !searchOn;
+					topBarText.find(1).visible = !topBarText.find(1).visible;
+					topBarText.find(2).visible = !topBarText.find(2).visible;
+					if (searchOn)
+						topBarText.find(2).text = "검색어를 입력하세요.";
+					InvalidateRect(hwnd, NULL, FALSE);
+				}
+			else if (point.y > 50 && point.y < SIZEH - 100)
+			{
+			
+			}
 
 			break;
 		}
@@ -183,7 +224,6 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		case WM_MOUSEMOVE:
 		{
 			point.x = lParam & 0xffff;
-			if (point.x > 60000) point.x = 0;
 			point.y = lParam >> 16;
 			//if (!mainPage)
 				//InvalidateRect(hwnd, NULL, FALSE);

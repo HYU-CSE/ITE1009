@@ -51,9 +51,10 @@ public:
 		this->indexTable.insert({ this->raw.size() - 1, &(this->raw.back()) });
 		return raw.size()-1;
 	}
-	T find(size_t index)
+	T& find(size_t index)
 	{
-		return (*(this->indexTable.find(index)));
+		if(index < this->raw.size())
+			return this->raw.at(index);
 	}
 	void change(T object, size_t index)
 	{

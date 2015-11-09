@@ -114,10 +114,9 @@ void draw_loop_list(HDC * dc, listElements& list, const string& find)
 {
 	if (find == "")
 	{
-		static int space = 50;
 		FOREACH_LIST(list, i, info)
 		{
-			int yy = list.y + i * space;
+			int yy = list.y + i * list.margin;
 		
 			MoveToEx(*dc, list.x, yy, NULL);
 			LineTo(*dc, list.x + list.w, yy);

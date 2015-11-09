@@ -93,11 +93,14 @@ private:
 		}
 	}
 public:
-	int x, y, w, h;
+	int x, y, w, h, margin = 50;
 
 	listElements() {}
 	~listElements() {}
-
+	int maxY()
+	{
+		return (this->raw.size() - 2) * this->margin - (this->margin/(1.3));
+	}
 	size_t size()
 	{
 		return this->raw.size();
