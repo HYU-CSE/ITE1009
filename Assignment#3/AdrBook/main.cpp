@@ -2,6 +2,8 @@
 #include "drawing.h"
 #include "listElements.h"
 #include "OpenFileDialog.h"
+#include "table.h"
+#include "object.h"
 
 #include <fstream>
 #include <iostream>
