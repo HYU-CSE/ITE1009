@@ -57,10 +57,6 @@ public:
 	{ return{ this->expandw(dest.first), this->expandh(dest.second) }; }
 };
 
-class callback {
-
-};
-
 class colored {
 private:
 public:
@@ -130,11 +126,4 @@ public:
 	object_text(int x, int y, int w, int h, bool visible, int size, string text) :
 		typer(TEXT), box<int>(x,y,w,h,visible), size(size), text(text) {}
 	~object_text() {}
-};
-
-class object_button : public box<int>, public callback {
-private:
-public:
-	object_button() :typer(RECTANGLE) {}
-	~object_button() {}
 };

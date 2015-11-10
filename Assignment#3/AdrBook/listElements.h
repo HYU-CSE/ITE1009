@@ -3,20 +3,22 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <functional>
 using namespace std;
 
 typedef struct MusicInfo {
-	string name, album, artist;
+	string name, album, artist, genre;
 public:
 	MusicInfo() {}
 	MusicInfo(const MusicInfo& info) : name(info.name), album(info.album), artist(info.artist) {}
 	MusicInfo(string name, string album, string artist) : name(name), album(album), artist(artist) {}
-	bool operator== (const MusicInfo& info) const
-	{
+	bool operator== (const MusicInfo& info) const {
 		return this->name == info.name && this->album == info.album && this->artist == info.artist;
 	}
-	bool operator() (MusicInfo& inf1, MusicInfo& inf2)
-	{
+	bool operator< (const MusicInfo& info) const {
+		return (this->name + "//-//" + this->album + "//-//" + this->artist) < (info.name + "//-//" + info.album + "//-//" + info.artist);
+	}
+	bool operator() (MusicInfo& inf1, MusicInfo& inf2) {
 		return inf1 == inf2;
 	}
 }musicInfo;
@@ -38,9 +40,25 @@ namespace std {
 			return ((hash<string>()(info.name) ^ (hash<string>()(info.album) << 4) >> 4) ^ hash<string>()(info.artist));
 		}
 	};
+	template<>
+	struct less<musicInfo>
+	{
+		bool operator()(const musicInfo& inf1, const musicInfo& inf2) const {
+			return inf1 < inf2;
+		}
+	};
 }
 
-#define FOREACH_LIST(list, i, info) musicInfo info = list.find(0); for(size_t i = 0;i < list.size(); info = list.find(i),i++)
+static inline std::string &ltrim(std::string &s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(isspace))));
+	return s;
+}
+static inline std::string &rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(isspace))).base(), s.end());
+	return s;
+}
+
+#define FOREACH_LIST(list, i, info) musicInfo (info) = ((list).find(0)); for(size_t (i) = 1; (i) <= ((list).size()); (info) = ((list).find((i))),((i)++))
 
 class listElements {
 private:
@@ -57,8 +75,9 @@ private:
 		return SIZE_MAX;
 	}
 	template <typename T>
-	vector<musicInfo> find(const unordered_map<T, vector<size_t>>& uMAP, const T& str)
+	vector<musicInfo> find(const unordered_map<T, vector<size_t>>& uMAP, T str)
 	{
+		transform(str.begin(), str.end(), str.begin(), toupper);
 		vector<musicInfo> result;
 		typename unordered_map<T, vector<size_t>>::const_iterator iter = uMAP.find(str);
 		if (iter != uMAP.end())
@@ -80,10 +99,10 @@ private:
 					return;
 				}
 	}
-	template <typename T>
-	void tableInsert(unordered_map<T, vector<size_t>>& uMAP, const T& str, size_t idx)
+	void tableInsertString(unordered_map<string, vector<size_t>>& uMAP, string str, size_t idx)
 	{
-		typename unordered_map<T, vector<size_t>>::iterator iter = uMAP.find(str);
+		transform(str.begin(), str.end(), str.begin(), toupper);
+		unordered_map<string, vector<size_t>>::iterator iter = uMAP.find(str);
 		if (iter != uMAP.end())
 			iter->second.push_back(idx);
 		else
@@ -92,18 +111,63 @@ private:
 			uMAP.insert({ str, temp });
 		}
 	}
-public:
+	void tableInsert(unordered_map<string, vector<size_t>>& uMAP, const string& str, size_t idx)
+	{
+		vector<string> words(1, str);
+		string diver = " /-";
+		for (int i = 0, j, pivot = 0; i <= str.size(); i++)
+		{
+			if (i == str.size())
+			{
+				words.push_back(str.substr(pivot, i - pivot));
+				break;
+			}
+			for (j = 0; j < diver.size(); j++)
+				if (str[i] == diver[j])
+					break;
+			if (j - diver.size())
+			{
+				words.push_back(str.substr(pivot, i - pivot));
+				pivot = i + 1;
+				i++;
+			}
+		}
+		std::sort(words.begin(), words.end());
+		words.erase(unique(words.begin(), words.end()), words.end());
+		for (string s : words)
+			for (int i = 1, j; i <= s.size(); i++)
+			{
+				for (j = 0; j < diver.size(); j++)
+					if (s[i-1] == diver[j])
+						break;
+				if(j == diver.size())
+					tableInsertString(uMAP, s.substr(0, i), idx);
+			}
+	}
+public: 
+	bool selector = false;
 	int x, y, w, h, margin = 50;
 
-	listElements() {}
+	listElements(bool stor) : selector (stor) {}
 	~listElements() {}
 	int maxY()
 	{
-		return (this->raw.size() - 2) * this->margin - (this->margin/(1.3));
+		return (this->raw.size() - 2) * this->margin - (int)(this->margin/(1.3));
 	}
 	size_t size()
 	{
 		return this->raw.size();
+	}
+	void sort()
+	{
+		if (selector)
+			std::sort(this->raw.begin(), this->raw.end(), [](const musicInfo& p, const musicInfo& q) {
+				return p.album < q.album || (p.album == q.album && p.name < q.name);
+			});
+		else
+			std::sort(this->raw.begin(), this->raw.end(), [](const musicInfo& p, const musicInfo& q) {
+				return p.name < q.name || (p.name == q.name && p.album < q.album);
+			});
 	}
 	void insert(const musicInfo& info)
 	{
@@ -141,5 +205,13 @@ public:
 		this->tableErase(this->tableAlbum, temp.album, idx);
 		this->tableErase(this->tableArtist, temp.artist, idx);
 		this->raw.erase(this->raw.begin() + idx);
+	}
+	void clear()
+	{
+		this->table.clear();
+		this->tableName.clear();
+		this->tableAlbum.clear();
+		this->tableArtist.clear();
+		this->raw.clear();
 	}
 };

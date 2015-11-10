@@ -148,12 +148,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="object.cpp" />
+    <ClCompile Include="OpenFileDialog.cpp" />
     <ClCompile Include="table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="drawing.h" />
     <ClInclude Include="listElements.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="OpenFileDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="table.h" />
@@ -164,6 +166,9 @@
   <ItemGroup>
     <Image Include="resource\menuIcons.bmp" />
     <Image Include="resource\topbarIcons.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

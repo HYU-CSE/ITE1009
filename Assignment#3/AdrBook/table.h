@@ -12,6 +12,7 @@ using namespace std;
 template<typename T>
 class table {
 private:
+	T nullity;
 	unordered_map <size_t, T*> indexTable;
 	typename vector<T>::iterator iter;
 	bool visible;
@@ -25,6 +26,7 @@ public:
 		this->raw.push_back(temp);
 		this->indexTable.insert({ raw.size() - 1, &(this->raw.back()) });
 		this->type = temp.type;
+		this->nullity = temp;
 	}
 	void setPivot(T object)
 	{
@@ -55,6 +57,7 @@ public:
 	{
 		if(index < this->raw.size())
 			return this->raw.at(index);
+		return nullity;
 	}
 	void change(T object, size_t index)
 	{

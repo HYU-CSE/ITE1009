@@ -1,21 +1,25 @@
 #include "main.h"
 #include "drawing.h"
 #include "listElements.h"
+#include "OpenFileDialog.h"
+
 #include <fstream>
 #include <iostream>
 HINSTANCE nInst;
-
+HWND nHwnd;
 #define abs(x) (x) > 0 ? (x) : (-(x))
 
+#define SCROLL_UPPER 10
+#define SCROLL_lOWER 11
+
 int frame = 0;
-bool searchOn = false;
+int yScr = 0;
 
 table<object_rectangle<int>> topBar, botBar;
 table<object_image> botIcon, topIcon;
 table<object_text> topBarText;
 
-
-listElements musicList;
+listElements musicList(0), searchList(0), genreList(1), * nList;
 
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -43,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!RegisterClassEx(&win_main))
 		return 0;
 
-	hwnd = CreateWindowEx(0, TITLE, TITLE, WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT,
+	hwnd = nHwnd = CreateWindowEx(0, TITLE, TITLE, WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT,
 		CW_USEDEFAULT, SIZEWW, SIZEHH, HWND_DESKTOP, NULL, hInstance, NULL);
 
 	ShowWindow(hwnd, nCmdShow);
@@ -67,17 +71,17 @@ void CALLBACK wheelTimerProc(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime)
 	{
 		case 10:
 		{
-			musicList.y -= (abs(musicList.y - 40)) / 7;
+			nList->y -= (abs(nList->y - 40)) / 10;
 			InvalidateRect(hwnd, NULL, FALSE);
-			if (musicList.y < 41)
+			if (nList->y < 41)
 				KillTimer(hwnd, 10);
 			break;
 		}
 		case 11:
 		{
-			musicList.y += (abs(musicList.y - SIZEW + musicList.maxY())/ 7);
+			nList->y += (abs(nList->y - SIZEW + nList->maxY())/ 10);
 			InvalidateRect(hwnd, NULL, FALSE);
-			if (musicList.y > SIZEW - musicList.maxY())
+			if (nList->y > SIZEW - nList->maxY())
 				KillTimer(hwnd, 11);
 			break;
 		}
@@ -85,6 +89,66 @@ void CALLBACK wheelTimerProc(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime)
 			break;
 	}
 }
+
+bool searchOn = false;
+void keySearch(const string& str)
+{
+	searchList.clear();
+	vector<musicInfo> result, temp;
+	temp = nList->findName(str);
+	for (musicInfo info : temp)
+		result.push_back(info);
+	temp = nList->findAlbum(str);
+	for (musicInfo info : temp)
+		result.push_back(info);
+	temp = nList->findArtist(str);
+	for (musicInfo info : temp)
+		result.push_back(info);
+	sort(result.begin(), result.end());
+	result.erase(unique(result.begin(), result.end()), result.end());
+	for (musicInfo info : result)
+		searchList.insert(info);
+}
+
+void changeFrame(int f)
+{
+	switch (f)
+	{
+	case 0:
+		nList = &musicList;
+		break;
+	case 1:
+		nList = &genreList;
+		break;
+	}
+	InvalidateRect(nHwnd, NULL, FALSE);
+}
+
+bool lOpen = false;
+void musicListOpen(string file)
+{
+	musicList.clear();
+	genreList.clear();
+	string temp;
+	ifstream in(file);
+	int size; in >> size;
+	getline(in, temp);
+	while (size--)
+	{
+		string name, album, artist, genre;
+		getline(in, name);
+		getline(in, album);
+		getline(in, artist);
+		getline(in, genre);
+		musicList.insert(createInfo(name, album, artist));
+		genreList.insert(createInfo(name, genre, album ));
+	}
+	musicList.sort();
+	genreList.sort();
+	changeFrame(0);
+	InvalidateRect(nHwnd, NULL, FALSE);
+}
+
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -125,22 +189,14 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			botIcon.insert(iGenre);
 			botIcon.insert(iAlbum);
 
-			musicList.x = 5;
-			musicList.y = 40;
-			musicList.w = SIZEW - 10;
-			musicList.h = SIZEH - 40 - 60;
-			string temp;
-			ifstream in("musicList.ini");
-			int size; in >> size;
-			getline(in, temp);
-			while (size--)
-			{
-				string name, album, artist;
-				getline(in, name);
-				getline(in, album);
-				getline(in, artist);
-				musicList.insert(createInfo(name, album, artist));
-			}
+			genreList.x = musicList.x = searchList.x = 5;
+			genreList.y = musicList.y = searchList.y = 40;
+			genreList.w = musicList.w = searchList.w = SIZEW - 10;
+			genreList.h = musicList.h = searchList.h = SIZEH - 40 - 60;
+			genreList.margin = musicList.margin = searchList.margin = 50;
+
+			musicListOpen("musicList.ini");
+
 			break;
 		}
 		case WM_TIMER:
@@ -154,25 +210,50 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		case WM_MOUSEWHEEL:
 		{
 			int e = ((SHORT)HIWORD(wParam) > 0) ? (-15) : (((SHORT)HIWORD(wParam) < 0) ? (15) : (0));
-			musicList.y += e;
+			nList->y += e;
+
 			InvalidateRect(hwnd, NULL, FALSE);
-			if (musicList.y < SIZEW - musicList.maxY())
+			if (nList->y < SIZEW - nList->maxY())
 			{
 				KillTimer(hwnd, 10);
 				KillTimer(hwnd, 11);
-				SetTimer(hwnd, 11, 20, wheelTimerProc);
+				SetTimer(hwnd, 11, 10, wheelTimerProc);
 			}
-			else if (musicList.y > 41)
+			else if (nList->y > 41)
 			{
 				KillTimer(hwnd, 10);
 				KillTimer(hwnd, 11);
-				SetTimer(hwnd, 10, 20, wheelTimerProc);
+				SetTimer(hwnd, 10, 10, wheelTimerProc);
 			}
 			break;
 		}
 		case WM_KEYDOWN:
 		{
+			switch (wParam)
+			{
+				case VK_DOWN:
+					nList->y -= 25;
 
+					InvalidateRect(hwnd, NULL, FALSE);
+					if (nList->y < SIZEW - nList->maxY())
+					{
+						KillTimer(hwnd, 10);
+						KillTimer(hwnd, 11);
+						SetTimer(hwnd, 11, 10, wheelTimerProc);
+					}
+					break;
+				case VK_UP:
+					nList->y += 25;
+
+					InvalidateRect(hwnd, NULL, FALSE);
+					if (nList->y > 41)
+					{
+						KillTimer(hwnd, 10);
+						KillTimer(hwnd, 11);
+						SetTimer(hwnd, 10, 10, wheelTimerProc);
+					}
+					break;
+			}
 			if (searchOn)
 			{
 				if (topBarText.find(2).text == "검색어를 입력하세요.")
@@ -182,15 +263,47 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				{
 					case VK_BACK:
 						if (topBarText.find(2).text.size())
+						{
 							topBarText.find(2).text.pop_back();
+							keySearch(topBarText.find(2).text);
+						}
+						break;
+					case VK_SPACE:
+						topBarText.find(2).text += ' ';
 						break;
 					case VK_RETURN:
+					{
+						if (searchOn)
+						{
+							nList = &searchList;
+							searchOn = false;
+						}
 						break;
+					}
 					default:
-						if ((wParam >= 'a' && wParam <= 'z') || (wParam >= 'A' && wParam <= 'Z'))
-							topBarText.find(2).text += (char)(wParam-'A'+'a');
+						if (wParam >= 'A' && wParam <= 'Z')
+						{
+							topBarText.find(2).text += (char)(wParam - 'A' + 'a');
+							keySearch(topBarText.find(2).text);
+						}
 						break;
 				}
+				InvalidateRect(hwnd, NULL, FALSE);
+			}
+			else if (wParam == 'F')
+			{
+				searchOn = true;
+				searchList.clear();
+				topBarText.find(1).visible = false;
+				topBarText.find(2).text = "검색어를 입력하세요.";
+				topBarText.find(2).visible = true;
+				InvalidateRect(hwnd, NULL, FALSE);
+			}
+			else if (wParam == VK_RETURN)
+			{
+				searchOn = false;
+				topBarText.find(1).visible = true;
+				topBarText.find(2).visible = false;
 				InvalidateRect(hwnd, NULL, FALSE);
 			}
 			break;
@@ -201,18 +314,58 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			point.y = lParam >> 16;
 
 			if (point.y < 40 && point.y > 5)
+			{
 				if (point.x > SIZEW - 35)
 				{
 					searchOn = !searchOn;
+					searchList.clear();
 					topBarText.find(1).visible = !topBarText.find(1).visible;
 					topBarText.find(2).visible = !topBarText.find(2).visible;
-					if (searchOn)
-						topBarText.find(2).text = "검색어를 입력하세요.";
+					topBarText.find(2).text = "검색어를 입력하세요.";
 					InvalidateRect(hwnd, NULL, FALSE);
 				}
+			}
 			else if (point.y > 50 && point.y < SIZEH - 100)
 			{
 			
+			}
+			else if (point.y > SIZEH - 100)
+			{
+				switch (point.x / 100)
+				{
+					case 0:
+					{
+						changeFrame(0);
+					}
+						break;
+					case 1:
+					{
+						OpenFileDialog* oFD = new OpenFileDialog();
+
+						oFD->FilterIndex = 1;
+						oFD->Flags |= OFN_SHOWHELP;
+						oFD->InitialDir = "";
+						oFD->Title = "Open Music List File";
+						if (!lOpen)
+						{
+							lOpen = true;
+							if (oFD->ShowDialog())
+								musicListOpen(oFD->FileName);
+							lOpen = false;
+						}
+					}
+						break;
+					case 2:
+					{
+						changeFrame(1);
+					}
+						break;
+					case 3:
+						break;
+					default:
+						break;
+					break;
+				}
 			}
 
 			break;
@@ -246,7 +399,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			SetBkMode(mDC, TRANSPARENT);
 			SetStretchBltMode(mDC, COLORONCOLOR);
 			{//draw
-				draw_loop_list(&mDC, musicList, "");
+				if (searchOn && searchList.size())
+					draw_loop_list(&mDC, searchList);
+				else if (searchOn && topBarText.find(2).text.size() && topBarText.find(2).text != "검색어를 입력하세요.")
+					drawText(&mDC, 100, 300, 250, 200, 22, "일치하는 결과가 없습니다.");
+				else
+					draw_loop_list(&mDC, (*nList));
 
 				draw_loop_proc(&mDC, botBar);
 				draw_loop_blt(&mDC, botIcon);
