@@ -21,12 +21,15 @@
     <ClCompile Include="OpenFileDialog.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="drawing.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="musicList.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="object.h">
@@ -38,12 +41,18 @@
     <ClInclude Include="drawing.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="listElements.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="OpenFileDialog.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="musicList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdrBook.rc">
@@ -51,14 +60,14 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resource\topbarIcons.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
     <Image Include="resource\menuIcons.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
+    <Image Include="resource\topbarIcons.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="resource\ico.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

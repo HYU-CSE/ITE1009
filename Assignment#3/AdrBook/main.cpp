@@ -1,14 +1,9 @@
+#pragma once
 #include "main.h"
-#include "drawing.h"
-#include "listElements.h"
-#include "OpenFileDialog.h"
-#include "table.h"
-#include "object.h"
-
 #include <fstream>
 #include <iostream>
+
 HINSTANCE nInst;
-HWND nHwnd;
 #define abs(x) (x) > 0 ? (x) : (-(x))
 
 #define SCROLL_UPPER 10
@@ -30,15 +25,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	MSG messages;
 	WNDCLASSEX win_main;
 
-	SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
-
-	HICON hICON = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
+	HICON hICON = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(APP_ICON), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
+	char szTitle[50], szClass[50];
+	LoadString(hInstance, APP_NAME, szTitle, 32);
+	LoadString(hInstance, APP_CLASS_NAME, szClass, 32);
+	
+	win_main.cbSize = sizeof(WNDCLASSEX);
 	win_main.hInstance = nInst = hInstance;
 	win_main.style = CS_HREDRAW | CS_VREDRAW;
-	win_main.cbSize = sizeof(WNDCLASSEX);
 	win_main.cbClsExtra = 0;
 	win_main.cbWndExtra = 0;
-	win_main.lpszClassName = TITLE;
+	win_main.lpszClassName = szClass;
 	win_main.lpszMenuName = NULL;
 	win_main.lpfnWndProc = WindowProcedure;
 	win_main.hIcon = hICON;
@@ -49,10 +46,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!RegisterClassEx(&win_main))
 		return 0;
 
-	hwnd = nHwnd = CreateWindowEx(0, TITLE, TITLE, WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT,
+	hwnd = CreateWindow(szClass, szTitle, WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT,
 		CW_USEDEFAULT, SIZEWW, SIZEHH, HWND_DESKTOP, NULL, hInstance, NULL);
+	
+	if (!hwnd)
+		return -1;
+
+	SetProcessWorkingSetSize(hwnd, -1, -1);
 
 	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
 
 	ZeroMemory(&messages, sizeof(messages));
 	while (messages.message != WM_QUIT)
@@ -110,10 +113,15 @@ void keySearch(const string& str)
 	result.erase(unique(result.begin(), result.end()), result.end());
 	for (musicInfo info : result)
 		searchList.insert(info);
+	searchList.sort();
 }
 
-void changeFrame(int f)
+void changeFrame(int f, HWND& hwnd)
 {
+	musicList.y = genreList.y = 40;
+
+	KillTimer(hwnd, 1);
+	KillTimer(hwnd, 11);
 	switch (f)
 	{
 	case 0:
@@ -123,16 +131,18 @@ void changeFrame(int f)
 		nList = &genreList;
 		break;
 	}
-	InvalidateRect(nHwnd, NULL, FALSE);
 }
 
 bool lOpen = false;
-void musicListOpen(string file)
+void musicListOpen(string file, HWND& hWnd)
 {
 	musicList.clear();
 	genreList.clear();
 	string temp;
 	ifstream in(file);
+	if (!in.is_open())
+		return;
+
 	int size; in >> size;
 	getline(in, temp);
 	while (size--)
@@ -145,10 +155,9 @@ void musicListOpen(string file)
 		musicList.insert(createInfo(name, album, artist));
 		genreList.insert(createInfo(name, genre, album ));
 	}
-	musicList.sort();
 	genreList.sort();
-	changeFrame(0);
-	InvalidateRect(nHwnd, NULL, FALSE);
+	musicList.sort();
+	InvalidateRect(hWnd, NULL, FALSE);
 }
 
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -197,8 +206,8 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			genreList.h = musicList.h = searchList.h = SIZEH - 40 - 60;
 			genreList.margin = musicList.margin = searchList.margin = 50;
 
-			musicListOpen("musicList.ini");
-
+			musicListOpen("musicList.ini", hwnd);
+			changeFrame(0, hwnd);
 			break;
 		}
 		case WM_TIMER:
@@ -336,9 +345,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				switch (point.x / 100)
 				{
 					case 0:
-					{
-						changeFrame(0);
-					}
+						changeFrame(0, hwnd);
 						break;
 					case 1:
 					{
@@ -352,15 +359,13 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 						{
 							lOpen = true;
 							if (oFD->ShowDialog())
-								musicListOpen(oFD->FileName);
+								musicListOpen(oFD->FileName,hwnd);
 							lOpen = false;
 						}
 					}
 						break;
 					case 2:
-					{
-						changeFrame(1);
-					}
+						changeFrame(1,hwnd);
 						break;
 					case 3:
 						break;
@@ -369,7 +374,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 					break;
 				}
 			}
-
+			InvalidateRect(hwnd, NULL, FALSE);
 			break;
 		}
 		case WM_COMMAND:

@@ -22,18 +22,18 @@ public:
 	int type;
 	table();
 
-	void setPivot(T object);
+	void setPivot(T);
 	T getPivot();
 
-	void setVisible(bool visible);
+	void setVisible(bool);
 	bool getVisible();
 
-	T& find(size_t index);
-	int insert(T object);
-	void change(T object, size_t index);
+	T& find(size_t);
+	int insert(T);
+	void change(T, size_t);
 
-	bool remove(size_t index);
-	bool remove(T object);
+	bool remove(size_t);
+	bool remove(T);
 	~table() {}
 };
 //
