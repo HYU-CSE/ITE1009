@@ -4,10 +4,10 @@
     <Position X="10.5" Y="1" Height="0.368" Width="3.21" />
   </Comment>
   <Comment CommentText="GUI objects">
-    <Position X="0.688" Y="1.751" Height="0.291" Width="7.243" />
+    <Position X="0.969" Y="1.167" Height="0.291" Width="7.243" />
   </Comment>
   <Comment CommentText="gui table&#xD;&#xA;">
-    <Position X="8.257" Y="1.773" Height="0.291" Width="1.601" />
+    <Position X="5.757" Y="1.773" Height="0.291" Width="2.445" />
   </Comment>
   <Class Name="listElements">
     <Position X="12.25" Y="1.75" Width="1.5" />
@@ -16,57 +16,57 @@
       <FileName>musicList.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="typer" Collapsed="true">
-    <Position X="3.5" Y="2.25" Width="1.5" />
+  <Class Name="typer">
+    <Position X="3.75" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAIAAAAAAAAAAAABAAAEAAAAAAAAAAA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="box&lt;T&gt;" Collapsed="true">
-    <Position X="3.5" Y="3.75" Width="1.5" />
+  <Class Name="box&lt;T&gt;">
+    <Position X="3.75" Y="4" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAQAhgCAAAAAA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="colored">
-    <Position X="1.5" Y="2.25" Width="1.5" />
+    <Position X="1.5" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAEAAAgAAAAAAAAAAAJAAAAAIAAAAAAAAAAAABA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="object_image">
-    <Position X="4.5" Y="5.25" Width="1.5" />
+    <Position X="4.75" Y="7.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAEAAAAAAAAIAAIAAAAAAAABgAAAAAAAAA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="object_rectangle&lt;T&gt;">
-    <Position X="2.5" Y="5.25" Width="1.5" />
+    <Position X="2.75" Y="7.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAIAAAAAAAAAA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="object_text">
-    <Position X="6.25" Y="5.25" Width="1.5" />
+    <Position X="6.5" Y="7.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAEAAAAAAIAAAAAAAAAAAAAIEAAAAAAAAAA=</HashCode>
       <FileName>object.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="table&lt;T&gt;">
-    <Position X="8.25" Y="2.25" Width="1.5" />
+    <Position X="6.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAEgIAABAJABMAAAEAEAAAAABgAAADAAACAAAAAA=</HashCode>
       <FileName>table.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="object_ellipse">
-    <Position X="0.5" Y="5.25" Width="1.5" />
+    <Position X="0.75" Y="7.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABA=</HashCode>
       <FileName>object.h</FileName>
@@ -80,14 +80,14 @@
     </TypeIdentifier>
   </Struct>
   <Struct Name="std::hash&lt;musicInfo&gt;">
-    <Position X="14" Y="1.75" Width="1.5" />
+    <Position X="8.5" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>musicList.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="std::less&lt;musicInfo&gt;">
-    <Position X="14" Y="3" Width="1.5" />
+    <Position X="8.5" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>musicList.h</FileName>
@@ -101,7 +101,7 @@
     </TypeIdentifier>
   </Typedef>
   <Enum Name="TYPE">
-    <Position X="5.5" Y="2.25" Width="1.5" />
+    <Position X="1.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CAAAAAAQAAAgAIAAAQAAAAAAAAAgAAAAAAAAEAAAAAA=</HashCode>
       <FileName>object.h</FileName>
