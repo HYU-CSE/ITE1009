@@ -11,7 +11,7 @@
 
 #include "resource.h"
 
-#include "OpenFileDialog.h"
+#include "FileDialog.h"
 
 #include "drawing.h"
 

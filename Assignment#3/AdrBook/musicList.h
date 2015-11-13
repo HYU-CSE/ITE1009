@@ -12,13 +12,13 @@ typedef struct MusicInfo {
 	string name, album, artist, genre;
 public:
 	MusicInfo() {}
-	MusicInfo(const MusicInfo& info) : name(info.name), album(info.album), artist(info.artist) {}
-	MusicInfo(string name, string album, string artist) : name(name), album(album), artist(artist) {}
+	MusicInfo(const MusicInfo& info) : name(info.name), album(info.album), artist(info.artist), genre(info.genre) {}
+	MusicInfo(string name, string album, string artist, string genre) : name(name), album(album), artist(artist), genre(genre) {}
 	bool operator== (const MusicInfo& info) const {
-		return this->name == info.name && this->album == info.album && this->artist == info.artist;
+		return this->name == info.name && this->album == info.album && this->artist == info.artist && this->genre == info.genre;
 	}
 	bool operator< (const MusicInfo& info) const {
-		return (this->name + "//-//" + this->album + "//-//" + this->artist) < (info.name + "//-//" + info.album + "//-//" + info.artist);
+		return (this->name  + this->album  + this->artist + this->genre) < (info.name  + info.album  + info.artist + this->genre);
 	}
 	bool operator() (MusicInfo& inf1, MusicInfo& inf2) {
 		return inf1 == inf2;
@@ -26,9 +26,9 @@ public:
 }musicInfo;
 
 
-musicInfo createInfo(string name, string album, string artist);
+musicInfo createInfo(string name, string album, string artist, string genre);
 
-static musicInfo nullInfo("", "", "");
+static musicInfo nullInfo("", "", "", "");
 #define nInfo nullInfo
 
 namespace std {
@@ -67,7 +67,8 @@ private:
 	unordered_map<string, vector<size_t>> tableName, tableAlbum, tableArtist;
 	unordered_map<musicInfo, size_t> table;
 
-	size_t findIndex(const musicInfo& info);
+	size_t findSortedIndex(const musicInfo&);
+	size_t findIndex(const musicInfo&);
 
 	template <typename T>
 	vector<musicInfo> find(const unordered_map<T, vector<size_t>>& uMAP, T str)
@@ -83,20 +84,22 @@ private:
 		return result;
 	}
 	template <typename T>
-	void tableErase(unordered_map<T, vector<size_t>>& uMAP, const T& str, size_t idx)
+	void tableErase(unordered_map<T, vector<size_t>>& uMAP, size_t idx)
 	{
-		typename unordered_map<T, vector<size_t>>::iterator iter = uMAP.find(str);
-		if (iter != uMAP.end())
-			for (size_t i = 0; i < iter->second.size(); i++)
-				if (iter->second[i] == idx)
+		for (typename unordered_map<T, vector<size_t>>::iterator iter = uMAP.begin(); iter != uMAP.end(); iter++)
+			for (vector<size_t>::iterator it = iter->second.begin(); it != iter->second.end(); it++)
+				if ((*it) == idx)
 				{
-					iter->second.erase(iter->second.begin() + idx);
-					return;
+					iter->second.erase(it);
+					if (iter->second.empty())
+						iter = uMAP.erase(iter);
+					break;
 				}
 	}
 	void tableInsertString(unordered_map<string, vector<size_t>>&, string, size_t);
 	void tableInsert(unordered_map<string, vector<size_t>>&, const string&, size_t);
 public:
+	size_t select = 0;
 	bool selector = false;
 	int x, y, w, h, margin = 50;
 
@@ -107,13 +110,13 @@ public:
 	size_t size();
 
 	void sort();
-	void insert(const musicInfo&);
+	size_t insert(const musicInfo&);
+	void remove(const musicInfo&);
 
 	musicInfo find(size_t);
 	vector<musicInfo> findName(string);
 	vector<musicInfo> findAlbum(string);
 	vector<musicInfo> findArtist(string);
 
-	void remove(musicInfo);
 	void clear();
 };

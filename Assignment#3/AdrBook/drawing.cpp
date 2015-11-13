@@ -67,23 +67,48 @@ void draw_loop_text(HDC * dc, table<object_text> table)
 void draw_loop_list(HDC * dc, listElements& list)
 {
 	musicInfo bfo = list.find(0);
-	long preC = 0xefefef, posC = 0xbcbcbc;
+	long preC = 0xdddddd, posC = 0xbbbbbb, sel = 0x35bd;
+	string str_main, str_sub, str_right, bstr;
 	FOREACH_LIST(list, i, info)
 	{
-		int yy = list.y + (i - 1) * list.margin;
+		int yy = list.y + (i - 1) * list.margin + 30;
+
+		str_main = info.name;
+		switch (list.selector)
+		{
+		case 0:
+			str_sub = info.genre;
+			str_right = info.album;
+			break;
+		case 1:
+			str_sub = info.artist;
+			str_right = info.album;
+			break;
+		case 2:
+			str_sub = info.artist;
+			str_right = info.genre;
+			break;
+		}
 
 		if ((list.selector && info.album != bfo.album) || !list.selector)
 			preC ^= posC ^= preC ^= posC;
 
+		if (list.select == i - 1)
+			posC ^= sel;
+
 		drawProc(dc, 0, yy + 1, SIZEW, list.margin, 1, 0, posC, 0, Rectangle);
 		drawProc(dc, 0, yy + 1, SIZEW, list.margin, 1, 0, posC, 0, Rectangle);
+
+		if (list.select == i - 1)
+			posC ^= sel;
 
 		MoveToEx(*dc, list.x, yy, NULL);
 		LineTo(*dc, list.x + list.w, yy);
 
-		drawText(dc, list.x + 10, yy + 8, list.w, yy + 32, 24, info.name);
-		drawText(dc, list.x + 15, yy + 31, list.w, yy + 40, 14, info.artist);
-		drawText(dc, list.x - 10, yy + 28, list.w, yy + 25, 16, info.album, DT_RIGHT);
-		bfo.album = info.album;
+
+		drawText(dc, list.x + 10, yy + 8, list.w, yy + 32, 24, str_main);
+		drawText(dc, list.x + 15, yy + 31, list.w, yy + 40, 14, str_sub);
+		drawText(dc, list.x - 10, yy + 28, list.w, yy + 25, 16, str_right, DT_RIGHT);
+		bstr = str_right;
 	}
 }

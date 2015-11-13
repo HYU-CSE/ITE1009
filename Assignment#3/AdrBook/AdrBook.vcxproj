@@ -149,13 +149,13 @@
     <ClCompile Include="drawing.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="musicList.cpp" />
-    <ClCompile Include="OpenFileDialog.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="drawing.h" />
     <ClInclude Include="musicList.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="OpenFileDialog.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="table.h" />
