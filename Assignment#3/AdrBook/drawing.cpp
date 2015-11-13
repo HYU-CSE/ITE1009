@@ -90,7 +90,7 @@ void draw_loop_list(HDC * dc, listElements& list)
 			break;
 		}
 
-		if ((list.selector && info.album != bfo.album) || !list.selector)
+		if ((list.selector && str_right != bstr) || !list.selector)
 			preC ^= posC ^= preC ^= posC;
 
 		if (list.select == i - 1)
