@@ -105,7 +105,6 @@ void draw_loop_list(HDC * dc, listElements& list)
 		MoveToEx(*dc, list.x, yy, NULL);
 		LineTo(*dc, list.x + list.w, yy);
 
-
 		drawText(dc, list.x + 10, yy + 8, list.w, yy + 32, 24, str_main);
 		drawText(dc, list.x + 15, yy + 31, list.w, yy + 40, 14, str_sub);
 		drawText(dc, list.x - 10, yy + 28, list.w, yy + 25, 16, str_right, DT_RIGHT);

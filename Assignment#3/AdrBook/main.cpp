@@ -253,6 +253,8 @@ void musicListSave(string file, HWND& hwnd)
 	out.close();
 }
 
+
+
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -333,79 +335,156 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 		}
 		case WM_KEYDOWN:
 		{
-			switch (wParam)
-			{
-				case VK_DOWN:
-					nList->y -= 25;
-
-					InvalidateRect(hwnd, NULL, FALSE);
-					if (nList->y < SIZEW - nList->maxY())
-					{
-						KillTimer(hwnd, 10);
-						KillTimer(hwnd, 11);
-						SetTimer(hwnd, 11, 10, wheelTimerProc);
-					}
-					break;
-				case VK_UP:
-					nList->y += 25;
-
-					InvalidateRect(hwnd, NULL, FALSE);
-					if (nList->y > 41)
-					{
-						KillTimer(hwnd, 10);
-						KillTimer(hwnd, 11);
-						SetTimer(hwnd, 10, 10, wheelTimerProc);
-					}
-					break;
-			}
 			if (searchOn)
 			{
 				if (topBarText.find(2).text == "검색어를 입력하세요.")
 					topBarText.find(2).text = "";
-				
+
 				switch (wParam)
 				{
-					case VK_BACK:
-						if (topBarText.find(2).text.size())
-						{
-							topBarText.find(2).text.pop_back();
-							keySearch(topBarText.find(2).text, hwnd);
-						}
-						break;
-					case VK_SPACE:
-						topBarText.find(2).text += ' ';
-						break;
-					case VK_ESCAPE:
-					case VK_RETURN:
+				case VK_BACK:
+					if (topBarText.find(2).text.size())
 					{
-						if (searchOn)
-							searchOff();
-						break;
+						topBarText.find(2).text.pop_back();
+						keySearch(topBarText.find(2).text, hwnd);
 					}
-					default:
-						if (wParam >= 'A' && wParam <= 'Z')
-						{
-							topBarText.find(2).text += (char)(wParam - 'A' + 'a');
-							keySearch(topBarText.find(2).text,hwnd);
-						}
-						else if (wParam >= '0' && wParam <= '9')
-						{
-							topBarText.find(2).text += (char)(wParam);
-							keySearch(topBarText.find(2).text, hwnd);
-						}
-						break;
+					break;
+				case VK_SPACE:
+					topBarText.find(2).text += ' ';
+					break;
+				case VK_ESCAPE:
+				case VK_RETURN:
+				{
+					if (searchOn)
+						searchOff();
+					break;
+				}
+				default:
+					if (wParam >= 'A' && wParam <= 'Z')
+					{
+						topBarText.find(2).text += (char)(wParam - 'A' + 'a');
+						keySearch(topBarText.find(2).text, hwnd);
+					}
+					else if (wParam >= '0' && wParam <= '9')
+					{
+						topBarText.find(2).text += (char)(wParam);
+						keySearch(topBarText.find(2).text, hwnd);
+					}
+					break;
 				}
 			}
-			else if (wParam == 'F')
-			{
-				searchOn = true;
-				searchList.clear();
-				topBarText.find(1).visible = false;
-				topBarText.find(2).text = "검색어를 입력하세요.";
-				topBarText.find(2).visible = true;
-			}
-			else if (wParam == VK_RETURN)
-				searchOff();
+			else
+				switch (wParam)
+				{
+					case VK_DOWN:
+						nList->y -= 25;
+
+						InvalidateRect(hwnd, NULL, FALSE);
+						if (nList->y < SIZEW - nList->maxY())
+						{
+							KillTimer(hwnd, 10);
+							KillTimer(hwnd, 11);
+							SetTimer(hwnd, 11, 10, wheelTimerProc);
+						}
+						break;
+					case VK_UP:
+						nList->y += 25;
+
+						InvalidateRect(hwnd, NULL, FALSE);
+						if (nList->y > 41)
+						{
+							KillTimer(hwnd, 10);
+							KillTimer(hwnd, 11);
+							SetTimer(hwnd, 10, 10, wheelTimerProc);
+						}
+						break;
+					case VK_DELETE:
+						{
+							musicInfo info = nList->find(nList->select);
+							musicList.remove(info);
+							albumList.remove(info);
+							genreList.remove(createInfo(info.name, info.genre, info.album, info.artist));
+							break;
+						}
+					case VK_INSERT:
+						if (!musicInput)
+						{
+							musicInput = true;
+							HWND add = CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(MUSICINPUT), hwnd, musicInputProc);
+							MSG mmsg;
+							ShowWindow(add, 10);
+							while (GetMessage(&mmsg, 0, 0, 0))
+							{
+								if (!IsDialogMessage(add, &mmsg))
+								{
+									TranslateMessage(&mmsg);
+									DispatchMessage(&mmsg);
+								}
+							}
+
+							size_t idx = musicList.insert(inputed);
+							albumList.insert(inputed);
+							genreList.insert(inputed);
+							musicList.sort();
+							albumList.sort();
+							genreList.sort();
+
+							nList->select = idx;
+
+							musicInput = false;
+							InvalidateRect(hwnd, NULL, FALSE);
+						}
+						break;
+					case VK_RETURN:
+						searchOff();
+						break;
+					default:
+					{//단축키
+						case 'O':
+							{//불러오기
+								OpenFileDialog* oFD = new OpenFileDialog();
+
+								oFD->FilterIndex = 1;
+								oFD->Flags |= OFN_SHOWHELP;
+								oFD->InitialDir = "";
+								oFD->Title = "Open Music List File";
+								if (!lOpen)
+								{
+									lOpen = true;
+									if (oFD->ShowDialog())
+										musicListOpen(oFD->FileName, hwnd);
+									lOpen = false;
+								}
+								break;
+							}
+						case 'S':
+							{//저장
+								SaveFileDialog* oFD = new SaveFileDialog();
+
+								oFD->FilterIndex = 1;
+								oFD->Flags |= OFN_SHOWHELP;
+								oFD->InitialDir = "";
+								oFD->Title = "Save to Music List File";
+								if (!lOpen)
+								{
+									lOpen = true;
+									if (oFD->ShowDialog())
+										musicListSave(oFD->FileName, hwnd);
+									lOpen = false;
+								}
+								break;
+							}
+						case 'F':
+							{//찾기
+								searchOn = true;
+								searchList.clear();
+								topBarText.find(1).visible = false;
+								topBarText.find(2).text = "검색어를 입력하세요.";
+								topBarText.find(2).visible = true;
+								break;
+							}
+					}
+				}
 			InvalidateRect(hwnd, NULL, FALSE);
 			break;
 		}
@@ -418,8 +497,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			{
 				if (point.x < 37)
 				{//ADD
-
-					if (!musicInput)
+					if (!musicInput && !searchOn)
 					{
 						musicInput = true;
 						HWND add = CreateDialog(GetModuleHandle(0), MAKEINTRESOURCE(MUSICINPUT),hwnd, musicInputProc);
