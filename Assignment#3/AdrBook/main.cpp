@@ -432,7 +432,6 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 							nList->select = idx;
 
 							musicInput = false;
-							InvalidateRect(hwnd, NULL, FALSE);
 						}
 						break;
 					case VK_RETURN:
