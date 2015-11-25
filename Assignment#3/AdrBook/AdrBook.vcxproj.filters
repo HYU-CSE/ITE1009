@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="resource\html1.htm" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdrBook.rc">
@@ -69,5 +70,10 @@
     <Image Include="resource\ico.ico">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="information.xml">
+      <Filter>리소스 파일</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

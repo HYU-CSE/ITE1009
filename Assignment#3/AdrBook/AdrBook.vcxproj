@@ -162,6 +162,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="resource\html1.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdrBook.rc" />
@@ -170,6 +173,9 @@
     <Image Include="resource\ico.ico" />
     <Image Include="resource\menuIcons.bmp" />
     <Image Include="resource\topbarIcons.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="information.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -567,7 +567,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			}
 			else if (point.y > 50 && point.y < SIZEH - 55)
 			{
-				for (int i = 0; i < nList->size(); i++)
+				for (size_t i = 0; i < nList->size(); i++)
 					if (-nList->y + point.y  < 30 + nList->margin * (i+1))
 					{
 						nList->select = i;
