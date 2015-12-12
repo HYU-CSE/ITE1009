@@ -7,7 +7,8 @@
 #include "object.h"
 using namespace std;
 
-#define FOREACH_TABLE(table, iter, type)  for(vector<type>::iterator (iter) = (table).raw.begin() + ((table).getVisible() ? 0 : 1); (iter) != (table).raw.end(); (iter)++)
+#define FOREACH_TABLE(table, iter, type)\
+	for(vector<type>::iterator (iter) = (table).raw.begin() + ((table).getVisible() ? 0 : 1); (iter) != (table).raw.end(); (iter)++)
 
 template<typename T>
 class table {

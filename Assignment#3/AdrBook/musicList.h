@@ -57,7 +57,9 @@ static inline std::string &rtrim(std::string &s) {
 	return s;
 }
 
-#define FOREACH_LIST(list, i, info) musicInfo (info) = ((list).find(0)); for(size_t (i) = 1; (i) <= ((list).size()); (info) = ((list).find((i))),((i)++))
+#define FOREACH_LIST(list, i, info)\
+	musicInfo (info) = ((list).find(0));\
+	for(size_t (i) = 1; (i) <= ((list).size()); (info) = ((list).find((i))),((i)++))
 
 class listElements {
 private:
