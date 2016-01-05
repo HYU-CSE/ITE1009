@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<musicInfo>
+	<music>
+		<name>101010</name>
+		<album>1010</name>
+		<artist>10</name>
+		<genre>1</name>
+	</music>
+	<music>
+		<name>1111</name>
+		<album>111</name>
+		<artist>11</name>
+		<genre>1</name>
+	</music>
+	<music>
+		<name>555</name>
+		<album>5555</name>
+		<artist>55555</name>
+		<genre>555555</name>
+	</music>
+	<music>
+		<name>666</name>
+		<album>6666</name>
+		<artist>66666</name>
+		<genre>666666</name>
+	</music>
+	<music>
+		<name>77</name>
+		<album>777</name>
+		<artist>7777</name>
+		<genre>77777</name>
+	</music>
+	<music>
+		<name>888</name>
+		<album>88</name>
+		<artist>8</name>
+		<genre>8888</name>
+	</music>
+	<music>
+		<name>9</name>
+		<album>99</name>
+		<artist>999</name>
+		<genre>9999</name>
+	</music>
+	<music>
+		<name>Emerald Sword</name>
+		<album>Symphony of Enchanted Lands</name>
+		<artist>Rhapsody of Fire</name>
+		<genre>rock</name>
+	</music>
+	<music>
+		<name>Epicus Furor</name>
+		<album>Symphony of Enchanted Lands</name>
+		<artist>Rhapsody of Fire</name>
+		<genre>rock</name>
+	</music>
+	<music>
+		<name>Symphony of Enchanted Lands</name>
+		<album>Symphony of Enchanted Lands</name>
+		<artist>Rhapsody of Fire</name>
+		<genre>rock</name>
+	</music>
+	<music>
+		<name>YYYyyyy</name>
+		<album>AAAbbbb</name>
+		<artist>CCCCddd</name>
+		<genre>genre</name>
+	</music>
+</musicInfo>
